@@ -1,0 +1,191 @@
+# Campaign Assistant - Default Configuration
+# This file contains default settings and serves as documentation for all available options
+
+# Application settings
+app:
+  name: "Campaign Assistant"
+  version: "0.1.0"
+  debug: false
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+
+# Storage configuration
+storage:
+  # Vector database settings
+  vector_db:
+    provider: "chromadb"  # Currently only chromadb supported
+    path: "./data/chroma_db"
+    collection_name: "campaign_documents"
+    
+  # File storage settings
+  files:
+    data_dir: "./data"
+    upload_dir: "./data/uploads"
+    processed_dir: "./data/processed"
+    max_file_size_mb: 50
+
+# Document processing settings
+processing:
+  # Chunking configuration
+  chunking:
+    chunk_size: 1000
+    chunk_overlap: 200
+    
+  # File type support
+  supported_formats:
+    - ".pdf"
+    - ".md"
+    - ".markdown"
+    - ".txt"
+    
+  # Content classification
+  classification:
+    enabled: true
+    confidence_threshold: 0.7
+
+# Embedding and retrieval settings
+embeddings:
+  # Embedding model configuration
+  model:
+    provider: "sentence_transformers"
+    name: "all-MiniLM-L6-v2"  # Fast, good quality embeddings
+    cache_dir: "./data/models"
+    
+  # Alternative models (for future use)
+  alternatives:
+    - name: "all-mpnet-base-v2"  # Higher quality, slower
+      use_case: "high_accuracy"
+    - name: "all-MiniLM-L12-v2"  # Balanced option
+      use_case: "balanced"
+
+# Retrieval settings
+retrieval:
+  # Search configuration
+  search:
+    default_max_results: 5
+    similarity_threshold: 0.3
+    enable_intent_classification: true
+    enable_context_boosting: true
+    
+  # Query processing
+  query:
+    max_query_length: 1000
+    enable_query_expansion: false
+    enable_spell_correction: false
+
+# LLM integration
+llm:
+  # Local models (via Ollama)
+  local:
+    enabled: true
+    provider: "ollama"
+    base_url: "http://localhost:11434"
+    timeout: 30
+    temperature: 0.7
+    max_tokens: 2000
+    
+    # Task-specific model selection for optimal performance
+    models:
+      default: "llama3.1:8b"              # General fallback
+      rag_qa: "llama3.1:8b"               # Document Q&A - best at staying grounded
+      creative: "mistral:7b"              # NPCs, encounters - superior creativity  
+      analysis: "llama3.1:8b"             # Summaries, planning - structured thinking
+      synthesis: "mistral-nemo:12b"       # Complex world-building - creative+instructional
+      general: "llama3.1:8b"              # General questions - reliable baseline
+      
+    # Model fallback chain (tried in order if preferred model unavailable)
+    fallback_models:
+      - "llama3.1:8b"
+      - "mistral:7b"
+      - "gemma2:9b"
+      - "llama3.2:3b"
+    
+  # Cloud models
+  cloud:
+    openai:
+      enabled: false
+      model: "gpt-4o-mini"
+      max_tokens: 2000
+      temperature: 0.7
+      
+    anthropic:
+      enabled: false
+      model: "claude-3-haiku-20240307"
+      max_tokens: 2000
+      temperature: 0.7
+
+# API settings (for future web interface)
+api:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 1
+  reload: false
+  
+# Security settings
+security:
+  # API keys and secrets (should be set via environment variables)
+  api_keys:
+    openai: null  # Set via OPENAI_API_KEY
+    anthropic: null  # Set via ANTHROPIC_API_KEY
+    
+  # CORS settings
+  cors:
+    enabled: true
+    origins:
+      - "http://localhost:3000"
+      - "http://127.0.0.1:3000"
+
+# Logging configuration
+logging:
+  version: 1
+  disable_existing_loggers: false
+  
+  formatters:
+    standard:
+      format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    detailed:
+      format: "%(asctime)s [%(levelname)s] %(name)s:%(lineno)d: %(message)s"
+      
+  handlers:
+    console:
+      class: "logging.StreamHandler"
+      level: "INFO"
+      formatter: "standard"
+      stream: "ext://sys.stdout"
+      
+    file:
+      class: "logging.handlers.RotatingFileHandler"
+      level: "DEBUG"
+      formatter: "detailed"
+      filename: "./data/logs/campaign_assistant.log"
+      maxBytes: 10485760  # 10MB
+      backupCount: 5
+      
+  loggers:
+    "": # root logger
+      level: "INFO"
+      handlers: ["console"]
+      propagate: false
+      
+    "campaign_assistant":
+      level: "DEBUG"
+      handlers: ["console", "file"]
+      propagate: false
+      
+    "chromadb":
+      level: "WARNING"
+      handlers: ["console"]
+      propagate: false
+
+# Feature flags
+features:
+  experimental:
+    enabled: false
+    
+  beta:
+    multi_campaign_support: false
+    web_interface: false
+    llm_integration: true
+    
+  alpha:
+    advanced_analytics: false
+    collaborative_features: false

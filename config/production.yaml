@@ -1,0 +1,54 @@
+# Production Configuration
+# Optimized settings for production deployment
+
+app:
+  debug: false
+  log_level: "WARNING"
+
+storage:
+  files:
+    max_file_size_mb: 100
+
+api:
+  workers: 4
+  reload: false
+
+logging:
+  loggers:
+    "":
+      level: "WARNING"
+      handlers: ["console", "file"]
+    "campaign_assistant":
+      level: "INFO" 
+      handlers: ["console", "file"]
+
+# Production security considerations
+security:
+  cors:
+    origins:
+      - "https://yourdomain.com"
+
+llm:
+  local:
+    # Production uses most reliable models
+    models:
+      default: "llama3.1:8b"
+      rag_qa: "llama3.1:8b"           # Most reliable for document Q&A
+      creative: "mistral:7b"           # Proven for creative content
+      analysis: "llama3.1:8b"          # Reliable for analysis
+      synthesis: "llama3.1:8b"         # Use reliable model instead of 12b for production
+      general: "llama3.1:8b"
+    
+    # More conservative fallback chain for production
+    fallback_models:
+      - "llama3.1:8b"
+      - "llama3.2:3b"
+
+# Conservative feature flags for production
+features:
+  experimental:
+    enabled: false
+  beta:
+    multi_campaign_support: false
+    web_interface: false
+    llm_integration: true  # Enable LLM but conservatively

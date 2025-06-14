@@ -1,0 +1,44 @@
+# Development Configuration
+# Overrides for local development environment
+
+app:
+  debug: true
+  log_level: "DEBUG"
+
+storage:
+  vector_db:
+    path: "./data/dev_chroma_db"
+    collection_name: "dev_campaign_documents"
+
+api:
+  reload: true
+  workers: 1
+
+logging:
+  loggers:
+    "":
+      level: "DEBUG"
+      handlers: ["console"]
+    "campaign_assistant":
+      level: "DEBUG"
+      handlers: ["console"]
+
+llm:
+  local:
+    # Development might use different models for testing
+    models:
+      # Use smaller models for faster development iteration
+      default: "llama3.2:3b"
+      rag_qa: "llama3.2:3b"
+      creative: "mistral:7b"
+      analysis: "llama3.2:3b"
+      synthesis: "mistral:7b"  # Use 7b instead of 12b for dev speed
+      general: "llama3.2:3b"
+
+features:
+  experimental:
+    enabled: true
+  beta:
+    multi_campaign_support: true
+    web_interface: true
+    llm_integration: true

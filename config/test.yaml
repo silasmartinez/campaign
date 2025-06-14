@@ -1,0 +1,38 @@
+# Test Configuration
+# Settings for running tests
+
+app:
+  debug: true
+  log_level: "WARNING"  # Reduce noise during tests
+
+storage:
+  vector_db:
+    path: "./data/test_chroma_db"
+    collection_name: "test_campaign_documents"
+  files:
+    data_dir: "./data/test"
+    upload_dir: "./data/test/uploads"
+    processed_dir: "./data/test/processed"
+
+processing:
+  chunking:
+    chunk_size: 500  # Smaller chunks for faster tests
+    chunk_overlap: 100
+
+embeddings:
+  model:
+    cache_dir: "./data/test/models"
+
+retrieval:
+  search:
+    default_max_results: 3
+    similarity_threshold: 0.2  # Lower threshold for test data
+
+logging:
+  loggers:
+    "":
+      level: "WARNING"
+      handlers: ["console"]
+    "campaign_assistant":
+      level: "ERROR"  # Only show errors during tests
+      handlers: ["console"]

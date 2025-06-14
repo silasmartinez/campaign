@@ -1,0 +1,114 @@
+#!/bin/bash
+# Campaign Assistant - Main Entry Point
+# Handles virtual environment setup and Python execution
+
+set -e  # Exit on any error
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Function to print colored output
+print_status() {
+    echo -e "${GREEN}[INFO]${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Check Python version
+check_python() {
+    if ! command -v python3 &> /dev/null; then
+        print_error "Python 3 is required but not installed"
+        exit 1
+    fi
+    
+    local python_version=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+    local required_version="3.11"
+    
+    if ! python3 -c "import sys; exit(0 if sys.version_info >= (3, 11) else 1)" 2>/dev/null; then
+        print_error "Python 3.11+ is required. You have Python $python_version"
+        exit 1
+    fi
+    
+    print_status "Python $python_version detected ✓"
+}
+
+# Setup virtual environment
+setup_venv() {
+    local venv_dir="venv"
+    
+    if [ ! -d "$venv_dir" ]; then
+        print_status "Creating virtual environment..."
+        python3 -m venv "$venv_dir"
+    fi
+    
+    # Activate virtual environment
+    source "$venv_dir/bin/activate"
+    
+    # Check if requirements are installed
+    if [ ! -f "$venv_dir/.deps_installed" ] || [ "requirements.txt" -nt "$venv_dir/.deps_installed" ]; then
+        print_status "Installing/updating dependencies..."
+        pip install --upgrade pip
+        pip install -r requirements.txt
+        touch "$venv_dir/.deps_installed"
+        print_status "Dependencies installed ✓"
+    fi
+}
+
+# Check if Ollama is running (optional)
+check_ollama() {
+    if command -v ollama &> /dev/null; then
+        if curl -s http://localhost:11434/api/tags >/dev/null 2>&1; then
+            print_status "Ollama is running ✓"
+        else
+            print_warning "Ollama is installed but not running. Start with: ollama serve"
+            print_warning "LLM features will be disabled without Ollama"
+        fi
+    else
+        print_warning "Ollama not found. Install from: https://ollama.ai"
+        print_warning "LLM features will be disabled without Ollama"
+    fi
+}
+
+# Set environment
+set_environment() {
+    # Auto-detect environment if not set
+    if [ -z "$CAMPAIGN_ENV" ]; then
+        if [ -f ".git/config" ] && [ ! -f "/.dockerenv" ]; then
+            export CAMPAIGN_ENV="development"
+        else
+            export CAMPAIGN_ENV="production"
+        fi
+    fi
+    
+    print_status "Environment: $CAMPAIGN_ENV"
+}
+
+# Main execution
+main() {
+    print_status "🎲 Campaign Assistant"
+    
+    check_python
+    setup_venv
+    set_environment
+    check_ollama
+    
+    # Execute the Python script with all arguments
+    python3 main.py "$@"
+}
+
+# Run main function with all arguments
+main "$@"
